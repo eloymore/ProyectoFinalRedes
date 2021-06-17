@@ -1,12 +1,13 @@
 #ifndef _CLIENT_
 #define _CLIENT_
 
-#include "netclass.h"
+#include "Socket.h"
 
-class Client : public NetClass{
+class Client{
     public:
-    Client(std::string ip, std::string port);
-    bool run() override;
+    Client();
+    private:
+    Socket _netSock;
 };
 
 #endif
