@@ -1,11 +1,11 @@
 #include <iostream>
 #include <string.h>
 
-#define usage "Usage: ./ProyectoFinal.exe <[c,s]> <ip> <port>"
+#define usage "Usage: ./ProyectoFinal.exe <[c],[s]> [nick] <ip> <port>"
 
 int main(int argc, char* argv[]){
 
-    if(argc < 4 || argc > 4){
+    if(argc < 4 || argc > 5){
         std::cerr << usage << std::endl;
         return -1;
     }

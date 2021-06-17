@@ -1,35 +1,28 @@
-#include "client.h"
+#include "server.h"
 #include "Messages.h"
-#include <iostream>
+#include <string.h>
 
-void Client::login(){
-    Message msg(_nick, Message::LOGIN);
-    _netSock.send(msg, _netSock);
-}
-
-void Client::logout(){
-    Message msg(_nick, Message::LOGOUT);
-    _netSock.send(msg, _netSock);
-}
-
-void Client::loop_thread(){
-    while(true){
-    // Input
-
-    // Render
-
-    }
-}
-
-void Client::net_thread(){
-    while(true){
+void Server::net_thread(){
+    while (true)
+    {
         Message* msg;
-        _netSock.recv(*msg);
+        Socket* newSD;
+        _netSock.recv(*msg, newSD);
 
         switch(msg->type){
             case Message::LOGIN:
+            {
                 std::cout << "Login de " << msg->nick << std::endl;
+                auto i = clients.begin();
+                while(i != clients.end() && !(*i->get() == *newSD)){ ++i; }
+                // Si no se encuentra ya en el vector se pone
+                if(i == clients.end()){
+                    std::unique_ptr<Socket> u_ptr(newSD);
+                    clients.push_back(std::move(u_ptr));
+                }
+                broadcast(*msg);
                 break;
+            }
             case Message::MOVEMENT:
             {
                 MovementMessage* mMsg = static_cast<MovementMessage*>(msg);
@@ -49,11 +42,26 @@ void Client::net_thread(){
                 break;
             }
             case Message::LOGOUT:
+            {
                 std::cout << "Logout de " << msg->nick << std::endl;
+                for(auto i = clients.begin(); i != clients.end(); ++i){
+                    if(*i->get() == *newSD){
+                        clients.erase(i);
+                        break;
+                    }
+                } 
+                broadcast(*msg);
                 break;
+            }
             default:
                 std::cout << "Mensaje desconocido de " << msg->nick << std::endl;
             break;
         }
+    }
+}
+
+void Server::broadcast(Message& msg){
+    for(int i = 0; i < clients.size(); ++i){
+        _netSock.send(msg, *clients[i].get());
     }
 }
