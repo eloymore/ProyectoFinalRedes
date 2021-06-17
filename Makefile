@@ -13,7 +13,7 @@ makedirs:
 program: $(OUT)
 
 $(OUT): $(OBJ)
-	g++ -o $(BUILDDIR)/$@ $(BUILDDIR)/$^ $(FLAGS)
+	g++ -o $(BUILDDIR)/$@ $(addprefix $(BUILDDIR)/,$^) $(FLAGS)
 
 %.o: %.cc
 	g++ -c $< -o $(BUILDDIR)/$@ 
