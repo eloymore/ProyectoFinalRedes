@@ -1,13 +1,16 @@
 #include "server.h"
 #include "Messages.h"
 #include <string.h>
+#include <iostream>
 
 void Server::net_thread(){
     while (true)
     {
-        Message* msg;
-        Socket* newSD;
-        _netSock.recv(*msg, newSD);
+        Message msgB;
+        Socket* newSD;  
+        char buffer[Message::MESSAGE_SIZE];
+        _netSock.recv(msgB, buffer, newSD);
+        Message* msg = &msgB;
 
         switch(msg->type){
             case Message::LOGIN:
@@ -26,18 +29,21 @@ void Server::net_thread(){
             case Message::MOVEMENT:
             {
                 MovementMessage* mMsg = static_cast<MovementMessage*>(msg);
+                mMsg->from_bin(buffer);
                 std::cout << "Movimiento: " << mMsg->x << "," << mMsg->y << std::endl;
                 break;
             }
             case Message::CLICK:
             {
                 ClickMessage* cMsg = static_cast<ClickMessage*>(msg);
+                cMsg->from_bin(buffer);
                 std::cout << "Click: " << cMsg->i << std::endl;
                 break;
             }
             case Message::SCORE:
             {
                 ScoreMessage* sMsg = static_cast<ScoreMessage*>(msg);
+                sMsg->from_bin(buffer);
                 std::cout << "Score: " << sMsg->i << std::endl;
                 break;
             }

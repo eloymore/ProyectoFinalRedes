@@ -14,18 +14,23 @@ void Client::logout(){
 
 void Client::loop_thread(){
     while(true){
-    // Input
-
-    // Render
+        // Input
+        char alpha;
+        std::cin >> alpha;
+        MovementMessage msg(_nick, 10, -17);
+        _netSock.send(msg, _netSock);
+        // Render
 
     }
 }
 
 void Client::net_thread(){
     while(true){
-        Message* msg;
-        _netSock.recv(*msg);
-
+        Message msgB;
+        char buffer[Message::MESSAGE_SIZE];
+        _netSock.recv(msgB, buffer);
+        Message* msg = &msgB;
+        
         switch(msg->type){
             case Message::LOGIN:
                 std::cout << "Login de " << msg->nick << std::endl;
@@ -33,18 +38,21 @@ void Client::net_thread(){
             case Message::MOVEMENT:
             {
                 MovementMessage* mMsg = static_cast<MovementMessage*>(msg);
+                mMsg->from_bin(buffer);
                 std::cout << "Movimiento: " << mMsg->x << "," << mMsg->y << std::endl;
                 break;
             }
             case Message::CLICK:
             {
                 ClickMessage* cMsg = static_cast<ClickMessage*>(msg);
+                cMsg->from_bin(buffer);
                 std::cout << "Click: " << cMsg->i << std::endl;
                 break;
             }
             case Message::SCORE:
             {
                 ScoreMessage* sMsg = static_cast<ScoreMessage*>(msg);
+                sMsg->from_bin(buffer);
                 std::cout << "Score: " << sMsg->i << std::endl;
                 break;
             }
