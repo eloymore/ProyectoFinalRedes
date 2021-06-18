@@ -1,18 +1,20 @@
 #include "server.h"
 #include "Messages.h"
 #include <string.h>
+#include <iostream>
 
 void Server::net_thread(){
     while (true)
     {
-        Message* msg;
+        Message msgB;
         Socket* newSD;
-        _netSock.recv(*msg, newSD);
+        char buffer[Message::MESSAGE_SIZE];
+        _netSock.recv(msgB, buffer, newSD);
 
-        switch(msg->type){
+        switch(msgB.type){
             case Message::LOGIN:
             {
-                std::cout << "Login de " << msg->nick << std::endl;
+                std::cout << "Login de " << msgB.nick << std::endl;
                 auto i = clients.begin();
                 while(i != clients.end() && !(*i->get() == *newSD)){ ++i; }
                 // Si no se encuentra ya en el vector se pone
@@ -20,49 +22,55 @@ void Server::net_thread(){
                     std::unique_ptr<Socket> u_ptr(newSD);
                     clients.push_back(std::move(u_ptr));
                 }
-                broadcast(*msg);
                 break;
             }
             case Message::MOVEMENT:
             {
-                MovementMessage* mMsg = static_cast<MovementMessage*>(msg);
-                std::cout << "Movimiento: " << mMsg->x << "," << mMsg->y << std::endl;
+                MovementMessage mMsg;
+                mMsg.from_bin(buffer);
+                std::cout << "Movimiento: " << mMsg.x << "," << mMsg.y << std::endl;
+                delete newSD;
                 break;
             }
             case Message::CLICK:
             {
-                ClickMessage* cMsg = static_cast<ClickMessage*>(msg);
-                std::cout << "Click: " << cMsg->i << std::endl;
+                ClickMessage cMsg;
+                cMsg.from_bin(buffer);
+                std::cout << "Click de " << cMsg.nick << ": " << cMsg.i << std::endl;
+                delete newSD;
                 break;
             }
             case Message::SCORE:
             {
-                ScoreMessage* sMsg = static_cast<ScoreMessage*>(msg);
-                std::cout << "Score: " << sMsg->i << std::endl;
+                ScoreMessage sMsg;
+                sMsg.from_bin(buffer);
+                std::cout << "Score de " << sMsg.nick << ": " << sMsg.i << std::endl;
+                delete newSD;
                 break;
             }
             case Message::LOGOUT:
             {
-                std::cout << "Logout de " << msg->nick << std::endl;
+                std::cout << "Logout de " << msgB.nick << std::endl;
                 for(auto i = clients.begin(); i != clients.end(); ++i){
                     if(*i->get() == *newSD){
                         clients.erase(i);
                         break;
                     }
                 } 
-                broadcast(*msg);
+                delete newSD;
                 break;
             }
             default:
-                std::cout << "Mensaje desconocido de " << msg->nick << std::endl;
+                std::cout << "Mensaje desconocido de " << msgB.nick << std::endl;
+                delete newSD;
             break;
         }
     }
 }
 
 void Server::broadcast(Message& msg){
-    for(int i = 0; i < clients.size(); ++i){
-        _netSock.send(msg, *clients[i].get());
+    for(auto it = clients.begin(); it != clients.end(); ++it){               
+        _netSock.send(msg, *it->get());
     }
 }
 

@@ -1,6 +1,7 @@
 #include "Messages.h"
 
 #include <string.h>
+#include <iostream>
 
 void Message::to_bin(){
     alloc_data(MESSAGE_SIZE);
@@ -15,6 +16,9 @@ void Message::to_bin(){
 
     memcpy(bin, nick.c_str(), 8);
     bin += 8;
+
+    memcpy(bin, msgData.c_str(), 63);
+    bin += 63;
 }
 
 int Message::from_bin(char * bobj){
@@ -30,6 +34,9 @@ int Message::from_bin(char * bobj){
 
     nick = bin;
     bin += 8;
+
+    msgData = bin;
+    bin += 63;
 
     return 0;
 }
@@ -76,7 +83,6 @@ int IntMessage::from_bin(char * bobj){
 
     //Reconstruir la clase usando el buffer _data
     char * bin = _data + 9; // Se salta la parte del tipo y el nick
-
     memcpy(&i, bin, sizeof(int));
     bin += sizeof(int);
 
