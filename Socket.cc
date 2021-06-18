@@ -64,11 +64,9 @@ int Socket::recv(Serializable &obj, char* buffer, Socket * &sock)
 int Socket::send(Serializable& obj, const Socket& sock)
 {
     //Serializar el objeto
-
     obj.to_bin();
 
     //Enviar el objeto binario a sock usando el socket sd
-
     if(sendto(sd, obj.data(), obj.size(), 0, &sock.sa, sock.sa_len) < 0){
         std::cerr << "[sendto] " << strerror(errno) << "\n";
         return -1;

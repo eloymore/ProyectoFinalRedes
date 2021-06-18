@@ -28,6 +28,7 @@ public:
 
     uint8_t type;
     std::string nick;
+    std::string msgData;
 };
 
 class MovementMessage : public Message{

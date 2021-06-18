@@ -1,6 +1,7 @@
 #include "client.h"
 #include "Messages.h"
 #include <iostream>
+#include <SDL.h>
 
 void Client::login(){
     Message msg(_nick, Message::LOGIN);
@@ -14,10 +15,10 @@ void Client::logout(){
 
 void Client::loop_thread(){
     while(true){
-        // Input
+        // Input       
         char alpha;
         std::cin >> alpha;
-        MovementMessage msg(_nick, 10, -17);
+        ScoreMessage msg(_nick, 109);
         _netSock.send(msg, _netSock);
         // Render
 
@@ -37,23 +38,23 @@ void Client::net_thread(){
                 break;
             case Message::MOVEMENT:
             {
-                MovementMessage* mMsg = static_cast<MovementMessage*>(msg);
-                mMsg->from_bin(buffer);
-                std::cout << "Movimiento: " << mMsg->x << "," << mMsg->y << std::endl;
+                MovementMessage mMsg;
+                mMsg.from_bin(buffer);
+                std::cout << "Movimiento: " << mMsg.x << "," << mMsg.y << std::endl;
                 break;
             }
             case Message::CLICK:
             {
-                ClickMessage* cMsg = static_cast<ClickMessage*>(msg);
-                cMsg->from_bin(buffer);
-                std::cout << "Click: " << cMsg->i << std::endl;
+                ClickMessage cMsg;
+                cMsg.from_bin(buffer);
+                std::cout << "Click de : " << cMsg.nick << " " << cMsg.i << std::endl;
                 break;
             }
             case Message::SCORE:
             {
-                ScoreMessage* sMsg = static_cast<ScoreMessage*>(msg);
-                sMsg->from_bin(buffer);
-                std::cout << "Score: " << sMsg->i << std::endl;
+                ScoreMessage sMsg;
+                sMsg.from_bin(buffer);
+                std::cout << "Score: " << sMsg.i << std::endl;
                 break;
             }
             case Message::LOGOUT:
