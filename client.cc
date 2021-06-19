@@ -26,7 +26,8 @@ bool Client::login(){
     _window = SDL_CreateWindow(_nick.c_str(), 0, 0, 750, 750, 0);
     _renderer = SDL_CreateRenderer(_window, 0, 0);
     _board = new Texture(_renderer, "./textures/dartboard.png");
-    _dart = new Texture(_renderer, "./textures/arrow.png");
+    _dart = new Texture(_renderer, "./textures/dart.png");
+    _power = new Texture(_renderer, "./textures/power.png");
     return true;
 }
 
@@ -39,6 +40,8 @@ void Client::loop_thread(){
     running = true;
     while(running){
         SDL_Event pEvent;
+        _powerAmount += 0.05;
+        if(_powerAmount > _powerLimit.y) _powerAmount = _powerLimit.x;
         while (SDL_PollEvent(&pEvent))
         {
             if (pEvent.type == SDL_QUIT) 
@@ -46,7 +49,7 @@ void Client::loop_thread(){
             else if (pEvent.type == SDL_MOUSEBUTTONDOWN)
             {
                 if(state == 1){
-                    VelocityMessage msg(_nick, pEvent.button.button);
+                    VelocityMessage msg(_nick, _powerAmount);
                     _netSock.send(msg, _netSock);
                     state = -1;
                 }
@@ -66,6 +69,7 @@ void Client::loop_thread(){
         SDL_RenderClear(_renderer);
         _board->render({125, 0, 500, 500});
         _dart->render({_dartX, _dartY, 100, 100});
+        if(state == 1) _power->render({_dartX + 100, _dartY, 100, 100}, {0, 0, (int)(100 * _powerAmount/_powerLimit.y), 100 });
         SDL_RenderPresent(_renderer);
     }
     logout();
@@ -90,7 +94,6 @@ void Client::net_thread(){
                 break;
             case Message::CONNREFUSED:
                 running = false;
-                Quit();
                 break;
             case Message::MOVEMENT:
             {
@@ -132,9 +135,8 @@ void Client::net_thread(){
 
                 std::cout << "Logout de " << msg->nick << std::endl;
 
-                scores.erase(scores.begin() + std::distance(nicks.begin(), std::find(nicks.begin(), nicks.end(), msg->nick)));
-                nicks.erase(std::find(nicks.begin(), nicks.end(), msg->nick));
-
+                //scores.erase(scores.begin() + std::distance(nicks.begin(), std::find(nicks.begin(), nicks.end(), msg->nick)));
+                //nicks.erase(std::find(nicks.begin(), nicks.end(), msg->nick));
                 break;
             default:
                 std::cout << "Mensaje desconocido de " << msg->nick << std::endl;

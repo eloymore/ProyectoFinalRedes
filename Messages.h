@@ -13,7 +13,6 @@ public:
     {
         LOGIN   = 0,
         CONNREFUSED,
-        CONNACCEPTED,
         MOVEMENT,
         CLICK,
         SCORE,

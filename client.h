@@ -6,6 +6,7 @@
 #include <SDL2/SDL_image.h>
 #include <vector>
 #include "Texture.h"
+#include "Vector2.h"
 
 class Client{
     public:
@@ -24,8 +25,11 @@ class Client{
     std::vector<int> scores;
     int state = -1; // -1 = not my turn/dart in air, 0 = moving dart, 1 = selecting strength
     Texture* _board;
-    Texture*_dart;
+    Texture* _dart;
+    Texture* _power;
     int _dartX = 325, _dartY = 550;
+    Vector2<float> _powerLimit = {1, 5};
+    float _powerAmount = 1;
 private:
     void Quit();
     bool running = true;
