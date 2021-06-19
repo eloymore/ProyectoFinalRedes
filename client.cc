@@ -1,6 +1,7 @@
 #include "client.h"
 #include "Messages.h"
 #include <iostream>
+#include <algorithm>
 
 #define COLOR(num) static_cast<Uint8>((num >> 24) & 0xff), static_cast<Uint8>((num >> 16) & 0xff), static_cast<Uint8>((num >> 8) & 0xff), static_cast<Uint8>(num & 0xff)
 
@@ -34,14 +35,26 @@ void Client::loop_thread(){
         SDL_Event pEvent;
         while (SDL_PollEvent(&pEvent))
         {
-            if (pEvent.type == SDL_QUIT) running = false;
-
-            if (pEvent.type == SDL_MOUSEBUTTONDOWN)
+            if (pEvent.type == SDL_QUIT) 
+                running = false;
+            else if (pEvent.type == SDL_MOUSEBUTTONDOWN)
             {
-                ClickMessage msg(_nick, pEvent.button.button);
-                _netSock.send(msg, _netSock);
+                if(state == 1){
+                    ClickMessage msg(_nick, pEvent.button.button);
+                    _netSock.send(msg, _netSock);
+                    state = -1;
+                }
+            }
+            else if(pEvent.type == SDL_MOUSEMOTION)
+            {
+                if(state == 0){
+                    MovementMessage msg(_nick, pEvent.motion.xrel, pEvent.motion.yrel);
+                    _netSock.send(msg, _netSock);
+                    state = 1;
+                }
             }
         }
+        
         SDL_SetRenderDrawColor(_renderer, COLOR(0xFF0000FF));
         SDL_RenderClear(_renderer);
         SDL_RenderPresent(_renderer);
@@ -79,6 +92,8 @@ void Client::net_thread(){
                 ScoreMessage sMsg;
                 sMsg.from_bin(buffer);
                 std::cout << "Score: " << sMsg.i << std::endl;
+
+                scores[std::distance(nicks.begin(), std::find(nicks.begin(), nicks.end(), sMsg.nick))] = sMsg.i;
                 break;
             }
             case Message::LOGOUT:

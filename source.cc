@@ -25,7 +25,11 @@ int main(int argc, char* argv[]){
     } else if(strcmp(argv[1], "s") == 0){
         // Server
         Server server(argv[2], argv[3]);
-        server.net_thread();
+        std::thread netThread([&server]{
+            server.net_thread();
+        });
+        netThread.detach();
+        server.loop_thread();
     } else {
         std::cerr << usage << std::endl;
         return -1;

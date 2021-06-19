@@ -30,6 +30,10 @@ void Server::net_thread(){
                 MovementMessage mMsg;
                 mMsg.from_bin(buffer);
                 std::cout << "Movimiento: " << mMsg.x << "," << mMsg.y << std::endl;
+
+                dartPos += {mMsg.x, mMsg.y};
+
+                //broadcast(mMsg);
                 delete newSD;
                 break;
             }
@@ -73,4 +77,27 @@ void Server::broadcast(Message& msg){
     for(auto it = clients.begin(); it != clients.end(); ++it){               
         _netSock.send(msg, *it->get());
     }
+}
+
+void Server::loop_thread(){
+    while(true){
+        if(dartInAir){
+            if (moveDartInAir()){
+                scores[clientTurn] += getScore(dartPos);
+                ScoreMessage sm(nicks[clientTurn], scores[clientTurn]);
+                _netSock.send(sm, *(clients[clientTurn].get())); // TODO: broadcast
+            }
+        }
+    }
+}
+
+bool Server::moveDartInAir(){
+
+    Vector2<> gravity = Vector2<>::down() * 9.8f;
+
+    dartPos += gravity;
+
+    dartDepth += dartVelocity;
+
+    return dartDepth >= targetDepth;
 }

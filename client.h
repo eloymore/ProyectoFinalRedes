@@ -4,6 +4,7 @@
 #include "Socket.h"
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
+#include <vector>
 
 class Client{
     public:
@@ -18,6 +19,9 @@ class Client{
     Socket _netSock;
     SDL_Window* _window;
     SDL_Renderer* _renderer;
+    std::vector<std::string> nicks;
+    std::vector<int> scores;
+    int state = 0; // -1 = not my turn/dart in air, 0 = moving dart, 1 = selecting strength
 };
 
 #endif
