@@ -2,6 +2,7 @@
 #include "Messages.h"
 #include <string.h>
 #include <iostream>
+#include <algorithm>
 
 void Server::net_thread(){
     while (true)
@@ -22,17 +23,19 @@ void Server::net_thread(){
                     clients.push_back(std::move(u_ptr));
                     nicks.push_back(msgB.nick);
                     clientScores.push_back(0);
+
+                    broadcast(msgB);
+
+                    if(clients.size() == 1){ // Si es el primer cliente, le dice que es su turno
+                        Message turn(SERVERNICK, Message::TURN);
+                        _netSock.send(turn, *(clients[0].get()));
+                    }
                 }
                 else {
                     std::cout << "Login de " << msgB.nick << " fallido, ya estaba metido" << std::endl;
                     Message connRefused(SERVERNICK, Message::CONNREFUSED);
                     _netSock.send(connRefused, *newSD);
-                }
-                broadcast(msgB);
-
-                if(clients.size() == 1){ // Si es el primer cliente, le dice que es su turno
-                    Message turn(SERVERNICK, Message::TURN);
-                    _netSock.send(turn, *(clients[0].get()));
+                    delete newSD;
                 }
                 break;
             }
@@ -79,6 +82,20 @@ void Server::net_thread(){
             {
                 std::cout << "Logout de " << msgB.nick << std::endl;
                 broadcast(msgB);
+                int dist = std::distance(nicks.begin(), std::find(nicks.begin(), nicks.end(), msgB.nick));
+                clientScores.erase(clientScores.begin() + dist);
+                nicks.erase(nicks.begin() + dist);
+                clients.erase(clients.begin() + dist);
+                if(dist == clientTurn && clients.size() > 0){   // Si se ha ido el que tenía el turno debe pasarse
+                    clientTurn = (clientTurn + 1) % clients.size();     // Cambio de turno      
+                    Message nt(SERVERNICK, Message::TURN);
+                    _netSock.send(nt, *(clients[clientTurn].get()));    // Siguiente turno
+                    MovementMessage mm(SERVERNICK, 325, 500);
+                    _netSock.send(mm, *(clients[clientTurn].get()));    // Actualizar posición del dardo
+                    dartInAir = false;
+                } else if(dist < clientTurn && clients.size() > 0){ // Si estaba delante suya, debe offsetearse 1 a la iozquierda el turno 
+                    clientTurn--;                                   // para que no se le ponga al de su derecha la puntuación por ejemplo
+                }
                 delete newSD;
                 break;
             }
