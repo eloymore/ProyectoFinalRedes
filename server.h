@@ -27,7 +27,7 @@ private:
     std::vector<int> clientScores;
     Vector2<> targetPos = { 375, 250 };
     float targetRadius = 250;
-    int scores[20] = { 6, 13, 4, 18, 1, 20, 5, 12, 9, 14, 11, 8, 16, 7, 19, 3, 17, 2, 15, 10 };
+    int scores[20] = { 10, 12, 2, 17, 3, 19, 7, 16, 8, 11, 14, 9, 12, 5, 20, 1, 18, 4, 13, 6 };
     int bullseye = 50;
     int clientTurn = 0;
     bool dartInAir = false;

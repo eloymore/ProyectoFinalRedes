@@ -2,6 +2,7 @@
 #include "Messages.h"
 #include <string.h>
 #include <iostream>
+#include <math.h>
 
 void Server::net_thread(){
     while (true)
@@ -131,26 +132,26 @@ bool Server::moveDartInAir(){
 int Server::getScore(Vector2<> pos){
     Vector2<> dirFromCenter = pos - targetPos;
     int score = 0;
-    std::cout << std::endl << "Distancia: " << dirFromCenter.magnitude() << std::endl;
     if(dirFromCenter.magnitude() < targetRadius){
-        float angleBetweenR = dirFromCenter.angleDegrees(Vector2<>::right());
-        float angleBetweenL = dirFromCenter.angleDegrees(Vector2<>::left());
-        angleBetweenR -= 6, angleBetweenL -= 6, angleBetweenL += 180;
+        float angleBetween = std::atan2(-dirFromCenter.y, -dirFromCenter.x) * 180 / M_PI;
+        angleBetween += 180;
 
-        if(dirFromCenter.magnitude() > targetRadius * 0.1f){
-            if(pos.y > targetPos.y)
-                score = scores[(int)angleBetweenR / 13];
-            else
-                score = scores[(int)angleBetweenL / 13];
-            }
+        std::cout << "Angle: " << angleBetween << std::endl;
 
-            if(dirFromCenter.magnitude() > targetRadius * 0.475f && dirFromCenter.magnitude() < targetRadius * 0.525f){
+        if(dirFromCenter.magnitude() > (targetRadius * 0.1f)){
+
+            score = scores[(int)(angleBetween / 18.0f)];
+            
+            if(dirFromCenter.magnitude() > targetRadius * 0.40f && dirFromCenter.magnitude() < targetRadius * 0.45f){
                 score *= 2;
-            } else if (dirFromCenter.magnitude() > targetRadius * 0.95f){
+            } else if (dirFromCenter.magnitude() > targetRadius * 0.65f && dirFromCenter.magnitude() < targetRadius * 0.7f){
                 score *= 3;
             }
-        else
+        }else{
             score = bullseye;
+        }
+
+        std::cout << "Score: " << score << std::endl;
     }
     return score;
 }
