@@ -8,6 +8,8 @@
 
 class Message;
 
+#define SERVERNICK "SERVER"
+
 class Server{
 public:
     Server(const char* ip, const char* port) : _netSock(ip, port) { 
@@ -23,8 +25,8 @@ private:
     std::vector<std::unique_ptr<Socket>> clients;
     std::vector<std::string> nicks;
     std::vector<int> clientScores;
-    Vector2<> targetPos;
-    float targetRadius;
+    Vector2<> targetPos = { 375, 250 };
+    float targetRadius = 250;
     int scores[20] = { 6, 13, 4, 18, 1, 20, 5, 12, 9, 14, 11, 8, 16, 7, 19, 3, 17, 2, 15, 10 };
     int bullseye = 50;
     int clientTurn = 0;

@@ -16,25 +16,27 @@ Client::Client(const char* ip, const char* port, std::string nick) : _netSock(ip
 }
 
 Client::~Client(){
+    Quit();
 }
 
-void Client::login(){
+bool Client::login(){
     Message msg(_nick, Message::LOGIN);
     _netSock.send(msg, _netSock);
+
     _window = SDL_CreateWindow(_nick.c_str(), 0, 0, 750, 750, 0);
     _renderer = SDL_CreateRenderer(_window, 0, 0);
     _board = new Texture(_renderer, "./textures/dartboard.png");
     _dart = new Texture(_renderer, "./textures/arrow.png");
+    return true;
 }
 
 void Client::logout(){
     Message msg(_nick, Message::LOGOUT);
     _netSock.send(msg, _netSock);
-    SDL_Quit();
 }
 
 void Client::loop_thread(){
-    bool running = true;
+    running = true;
     while(running){
         SDL_Event pEvent;
         while (SDL_PollEvent(&pEvent))
@@ -53,8 +55,10 @@ void Client::loop_thread(){
             else if(pEvent.type == SDL_MOUSEMOTION)
             {
                 if(state == 0){
-                    MovementMessage msg(_nick, pEvent.motion.xrel, pEvent.motion.yrel);
+                    MovementMessage msg(_nick, pEvent.motion.x, pEvent.motion.y);
                     _netSock.send(msg, _netSock);
+                    _dartX = pEvent.motion.x - 50;
+                    _dartY = pEvent.motion.y - 50;
                 }
             }
         }
@@ -84,6 +88,10 @@ void Client::net_thread(){
                 scores.push_back(0);
 
                 break;
+            case Message::CONNREFUSED:
+                running = false;
+                Quit();
+                break;
             case Message::MOVEMENT:
             {
                 if(strcmp(msg->nick.c_str(), _nick.c_str()) == 0) break;
@@ -107,11 +115,10 @@ void Client::net_thread(){
             {
                 ScoreMessage sMsg;
                 sMsg.from_bin(buffer);
+
                 std::cout << "Score: " << sMsg.i << std::endl;
-                std::cout << scores.size() << std::endl;
-                std::cout << sMsg.nick << std::endl;
                 scores[std::distance(nicks.begin(), std::find(nicks.begin(), nicks.end(), sMsg.nick))] = sMsg.i;
-                std::cout << scores.size() << std::endl;
+
                 break;
             }
             case Message::TURN:
@@ -134,4 +141,10 @@ void Client::net_thread(){
             break;
         }
     }
+}
+
+void Client::Quit(){
+    // delete _window;
+    // delete _renderer;
+    SDL_Quit();
 }

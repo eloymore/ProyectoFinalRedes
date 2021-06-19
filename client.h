@@ -11,7 +11,7 @@ class Client{
     public:
     Client(const char* ip, const char* port, std::string nick);
     ~Client();
-    void login();
+    bool login();
     void logout();
     void loop_thread();
     void net_thread();
@@ -22,10 +22,13 @@ class Client{
     SDL_Renderer* _renderer;
     std::vector<std::string> nicks;
     std::vector<int> scores;
-    int state = 0; // -1 = not my turn/dart in air, 0 = moving dart, 1 = selecting strength
+    int state = -1; // -1 = not my turn/dart in air, 0 = moving dart, 1 = selecting strength
     Texture* _board;
     Texture*_dart;
     int _dartX = 325, _dartY = 550;
+private:
+    void Quit();
+    bool running = true;
 };
 
 #endif

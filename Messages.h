@@ -12,6 +12,8 @@ public:
     enum MessageType
     {
         LOGIN   = 0,
+        CONNREFUSED,
+        CONNACCEPTED,
         MOVEMENT,
         CLICK,
         SCORE,
