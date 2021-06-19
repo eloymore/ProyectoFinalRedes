@@ -15,6 +15,8 @@ public:
         MOVEMENT,
         CLICK,
         SCORE,
+        VELOCITY,
+        TURN,
         LOGOUT
     };
 
@@ -69,6 +71,19 @@ public:
     ScoreMessage(){}
 
     ScoreMessage(std::string nick, int score) : IntMessage(nick, SCORE, score){}
+};
+
+class VelocityMessage: public Message{
+    public:
+    VelocityMessage(){}
+
+    VelocityMessage(std::string nick, float velocityP) : Message(nick, VELOCITY), velocity(velocityP) {}
+    
+    void to_bin() override;
+
+    int from_bin(char * bobj) override;
+
+    float velocity;
 };
 
 #endif

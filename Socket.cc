@@ -20,6 +20,7 @@ Socket::Socket(const char * address, const char * port):sd(-1)
     if (rc != 0)
     {
         std::cerr << "[getaddrinfo] " << gai_strerror(rc) << "\n";
+        return;
     }
 
     //Con el resultado inicializar los miembros sd, sa y sa_len de la clase
@@ -29,6 +30,7 @@ Socket::Socket(const char * address, const char * port):sd(-1)
     if(sd == -1)
     {
         std::cerr << "[socket] " << strerror(errno) << "\n";
+        return;
     }
 
     sa = *res->ai_addr;

@@ -7,22 +7,25 @@ void Server::net_thread(){
     while (true)
     {
         Message msgB;
-        Socket* newSD;
+        Socket* newSD = &_netSock;
         char buffer[Message::MESSAGE_SIZE];
         _netSock.recv(msgB, buffer, newSD);
-
         switch(msgB.type){
             case Message::LOGIN:
             {
                 std::cout << "Login de " << msgB.nick << std::endl;
-                auto i = clients.begin();
-                while(i != clients.end() && !(*i->get() == *newSD)){ ++i; }
+                nicks.push_back(msgB.nick);
+                clientScores.push_back(0);
+                auto i = 0;
+                while(i < clients.size() && strcmp(msgB.nick.c_str(), nicks[i].c_str())){ ++i; }
                 // Si no se encuentra ya en el vector se pone
-                /*if(i == clients.end()){
+                if(i == clients.size()){
                     std::unique_ptr<Socket> u_ptr(newSD);
                     clients.push_back(std::move(u_ptr));
-                }*/
-                //broadcast(msgB);
+                    nicks.push_back(msgB.nick);
+                    clientScores.push_back(0);
+                }
+                broadcast(msgB);
                 break;
             }
             case Message::MOVEMENT:
@@ -33,7 +36,7 @@ void Server::net_thread(){
 
                 dartPos += {mMsg.x, mMsg.y};
 
-                //broadcast(mMsg);
+                broadcast(mMsg);
                 delete newSD;
                 break;
             }
@@ -53,15 +56,20 @@ void Server::net_thread(){
                 delete newSD;
                 break;
             }
+            case Message::VELOCITY:
+            {
+                VelocityMessage vMsg;
+                vMsg.from_bin(buffer);
+                dartVelocity = vMsg.velocity;
+                dartInAir = true;
+                std::cout << "Velocidad de " << vMsg.nick << ": " << vMsg.velocity << std::endl;
+                delete newSD;
+                break;
+            }
             case Message::LOGOUT:
             {
                 std::cout << "Logout de " << msgB.nick << std::endl;
-                /*for(auto i = clients.begin(); i != clients.end(); ++i){
-                    if(*i->get() == *newSD){
-                        clients.erase(i);
-                        break;
-                    }
-                }*/
+                broadcast(msgB);
                 delete newSD;
                 break;
             }
@@ -83,9 +91,15 @@ void Server::loop_thread(){
     while(true){
         if(dartInAir){
             if (moveDartInAir()){
-                scores[clientTurn] += getScore(dartPos);
-                ScoreMessage sm(nicks[clientTurn], scores[clientTurn]);
-                _netSock.send(sm, *(clients[clientTurn].get())); // TODO: broadcast
+                clientScores[clientTurn] += getScore(dartPos);
+                ScoreMessage sm(nicks[clientTurn], clientScores[clientTurn]);
+                _netSock.send(sm, *(clients[clientTurn].get()));    // TODO: broadcast
+                clientTurn = (clientTurn + 1) % clients.size();     // Cambio de turno      
+                Message nt("SERVER", Message::TURN);
+                _netSock.send(nt, *(clients[clientTurn].get()));    // Siguiente turno
+                MovementMessage mm("SERVER", 325, 500);
+                _netSock.send(mm, *(clients[clientTurn].get()));    // Actualizar posición del dardo
+                dartInAir = false;
             }
         }
     }
@@ -100,4 +114,30 @@ bool Server::moveDartInAir(){
     dartDepth += dartVelocity;
 
     return dartDepth >= targetDepth;
+}
+
+int Server::getScore(Vector2<> pos){
+    Vector2<> dirFromCenter = pos - targetPos;
+    int score = 0;
+    if(dirFromCenter.magnitude() < targetRadius){
+        float angleBetweenR = dirFromCenter.angleDegrees(Vector2<>::right());
+        float angleBetweenL = dirFromCenter.angleDegrees(Vector2<>::left());
+        angleBetweenR -= 6, angleBetweenL -= 6, angleBetweenL += 180;
+
+        if(dirFromCenter.magnitude() > targetRadius * 0.1f){
+            if(pos.y > targetPos.y)
+                score = scores[(int)angleBetweenR / 13];
+            else
+                score = scores[(int)angleBetweenL / 13];
+            }
+
+            if(dirFromCenter.magnitude() > targetRadius * 0.475f && dirFromCenter.magnitude() < targetRadius * 0.525f){
+                score *= 2;
+            } else if (dirFromCenter.magnitude() > targetRadius * 0.95f){
+                score *= 3;
+            }
+        else
+            score = bullseye;
+    }
+    return score;
 }

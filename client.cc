@@ -7,6 +7,8 @@
 
 Client::Client(const char* ip, const char* port, std::string nick) : _netSock(ip, port), _nick(nick) {
     _nick[7] = '\0';
+    nicks.push_back(_nick);
+    scores.push_back(0);
     if((SDL_Init(SDL_INIT_VIDEO|SDL_INIT_AUDIO)==-1)) { 
         printf("Could not initialize SDL: %s.\n", SDL_GetError());
         exit(-1);
@@ -42,24 +44,24 @@ void Client::loop_thread(){
             else if (pEvent.type == SDL_MOUSEBUTTONDOWN)
             {
                 if(state == 1){
-                    ClickMessage msg(_nick, pEvent.button.button);
+                    VelocityMessage msg(_nick, pEvent.button.button);
                     _netSock.send(msg, _netSock);
                     state = -1;
                 }
+                else if(state == 0) state = 1;
             }
             else if(pEvent.type == SDL_MOUSEMOTION)
             {
                 if(state == 0){
                     MovementMessage msg(_nick, pEvent.motion.xrel, pEvent.motion.yrel);
                     _netSock.send(msg, _netSock);
-                    state = 1;
                 }
             }
         }
         SDL_SetRenderDrawColor(_renderer, COLOR(0x964B00));
         SDL_RenderClear(_renderer);
         _board->render({125, 0, 500, 500});
-        _dart->render({325, 525, 100, 100});
+        _dart->render({_dartX, _dartY, 100, 100});
         SDL_RenderPresent(_renderer);
     }
     logout();
@@ -74,13 +76,24 @@ void Client::net_thread(){
         
         switch(msg->type){
             case Message::LOGIN:
+                if(strcmp(msg->nick.c_str(), _nick.c_str()) == 0) break;
+
                 std::cout << "Login de " << msg->nick << std::endl;
+
+                nicks.push_back(msg->nick);
+                scores.push_back(0);
+
                 break;
             case Message::MOVEMENT:
             {
+                if(strcmp(msg->nick.c_str(), _nick.c_str()) == 0) break;
+
                 MovementMessage mMsg;
                 mMsg.from_bin(buffer);
                 std::cout << "Movimiento: " << mMsg.x << "," << mMsg.y << std::endl;
+
+                _dartX = mMsg.x;
+                _dartY = mMsg.y;
                 break;
             }
             case Message::CLICK:
@@ -95,12 +108,26 @@ void Client::net_thread(){
                 ScoreMessage sMsg;
                 sMsg.from_bin(buffer);
                 std::cout << "Score: " << sMsg.i << std::endl;
-
+                std::cout << scores.size() << std::endl;
+                std::cout << sMsg.nick << std::endl;
                 scores[std::distance(nicks.begin(), std::find(nicks.begin(), nicks.end(), sMsg.nick))] = sMsg.i;
+                std::cout << scores.size() << std::endl;
+                break;
+            }
+            case Message::TURN:
+            {
+                state = 0;
+                std::cout << "My turn now >:D" << std::endl;
                 break;
             }
             case Message::LOGOUT:
+                if(strcmp(msg->nick.c_str(), _nick.c_str()) == 0) break;
+
                 std::cout << "Logout de " << msg->nick << std::endl;
+
+                scores.erase(scores.begin() + std::distance(nicks.begin(), std::find(nicks.begin(), nicks.end(), msg->nick)));
+                nicks.erase(std::find(nicks.begin(), nicks.end(), msg->nick));
+
                 break;
             default:
                 std::cout << "Mensaje desconocido de " << msg->nick << std::endl;
