@@ -4,6 +4,7 @@
 #include "Socket.h"
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
+#include "Texture.h"
 
 class Client{
     public:
@@ -18,6 +19,9 @@ class Client{
     Socket _netSock;
     SDL_Window* _window;
     SDL_Renderer* _renderer;
+    Texture* _board;
+    Texture*_dart;
+    float _dartX, _dartY;
 };
 
 #endif
