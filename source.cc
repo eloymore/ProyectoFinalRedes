@@ -20,6 +20,7 @@ int main(int argc, char* argv[]){
         std::thread netThread([&client]{
             client.net_thread();
         });
+        netThread.detach();
         client.loop_thread();
     } else if(strcmp(argv[1], "s") == 0){
         // Server

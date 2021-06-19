@@ -1,28 +1,52 @@
 #include "client.h"
 #include "Messages.h"
 #include <iostream>
-#include <SDL.h>
+
+#define COLOR(num) static_cast<Uint8>((num >> 24) & 0xff), static_cast<Uint8>((num >> 16) & 0xff), static_cast<Uint8>((num >> 8) & 0xff), static_cast<Uint8>(num & 0xff)
+
+Client::Client(const char* ip, const char* port, std::string nick) : _netSock(ip, port), _nick(nick) {
+    _nick[7] = '\0';
+    if((SDL_Init(SDL_INIT_VIDEO|SDL_INIT_AUDIO)==-1)) { 
+        printf("Could not initialize SDL: %s.\n", SDL_GetError());
+        exit(-1);
+    }
+}
+
+Client::~Client(){
+}
 
 void Client::login(){
     Message msg(_nick, Message::LOGIN);
     _netSock.send(msg, _netSock);
+    _window = SDL_CreateWindow(_nick.c_str(), 0, 0, 750, 750, 0);
+    _renderer = SDL_CreateRenderer(_window, 0, 0);
 }
 
 void Client::logout(){
     Message msg(_nick, Message::LOGOUT);
     _netSock.send(msg, _netSock);
+    SDL_Quit();
 }
 
 void Client::loop_thread(){
-    while(true){
-        // Input       
-        char alpha;
-        std::cin >> alpha;
-        ScoreMessage msg(_nick, 109);
-        _netSock.send(msg, _netSock);
-        // Render
+    bool running = true;
+    while(running){
+        SDL_Event pEvent;
+        while (SDL_PollEvent(&pEvent))
+        {
+            if (pEvent.type == SDL_QUIT) running = false;
 
+            if (pEvent.type == SDL_MOUSEBUTTONDOWN)
+            {
+                ClickMessage msg(_nick, pEvent.button.button);
+                _netSock.send(msg, _netSock);
+            }
+        }
+        SDL_SetRenderDrawColor(_renderer, COLOR(0xFF0000FF));
+        SDL_RenderClear(_renderer);
+        SDL_RenderPresent(_renderer);
     }
+    logout();
 }
 
 void Client::net_thread(){

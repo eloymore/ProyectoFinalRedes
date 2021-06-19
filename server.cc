@@ -18,10 +18,11 @@ void Server::net_thread(){
                 auto i = clients.begin();
                 while(i != clients.end() && !(*i->get() == *newSD)){ ++i; }
                 // Si no se encuentra ya en el vector se pone
-                if(i == clients.end()){
+                /*if(i == clients.end()){
                     std::unique_ptr<Socket> u_ptr(newSD);
                     clients.push_back(std::move(u_ptr));
-                }
+                }*/
+                //broadcast(msgB);
                 break;
             }
             case Message::MOVEMENT:
@@ -51,12 +52,12 @@ void Server::net_thread(){
             case Message::LOGOUT:
             {
                 std::cout << "Logout de " << msgB.nick << std::endl;
-                for(auto i = clients.begin(); i != clients.end(); ++i){
+                /*for(auto i = clients.begin(); i != clients.end(); ++i){
                     if(*i->get() == *newSD){
                         clients.erase(i);
                         break;
                     }
-                } 
+                }*/
                 delete newSD;
                 break;
             }
@@ -72,30 +73,4 @@ void Server::broadcast(Message& msg){
     for(auto it = clients.begin(); it != clients.end(); ++it){               
         _netSock.send(msg, *it->get());
     }
-}
-
-int Server::getScore(Vector2<> pos){
-    Vector2<> dirFromCenter = pos - targetPos;
-    int score = 0;
-    if(dirFromCenter.magnitude() < targetRadius){
-        float angleBetweenR = dirFromCenter.angleDegrees(Vector2<>::right());
-        float angleBetweenL = dirFromCenter.angleDegrees(Vector2<>::left());
-        angleBetweenR -= 6, angleBetweenL -= 6, angleBetweenL += 180;
-
-        if(dirFromCenter.magnitude() > targetRadius * 0.1f){
-            if(pos.y > targetPos.y)
-                score = scores[(int)angleBetweenR / 13];
-            else
-                score = scores[(int)angleBetweenL / 13];
-            }
-
-            if(dirFromCenter.magnitude() > targetRadius * 0.475f && dirFromCenter.magnitude() < targetRadius * 0.525f){
-                score *= 2;
-            } else if (dirFromCenter.magnitude() > targetRadius * 0.95f){
-                score *= 3;
-            }
-        else
-            score = bullseye;
-    }
-    return score;
 }
