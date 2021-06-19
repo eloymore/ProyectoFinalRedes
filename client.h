@@ -5,6 +5,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <vector>
+#include "Texture.h"
 
 class Client{
     public:
@@ -22,6 +23,9 @@ class Client{
     std::vector<std::string> nicks;
     std::vector<int> scores;
     int state = 0; // -1 = not my turn/dart in air, 0 = moving dart, 1 = selecting strength
+    Texture* _board;
+    Texture*_dart;
+    float _dartX, _dartY;
 };
 
 #endif

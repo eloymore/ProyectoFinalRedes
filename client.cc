@@ -21,6 +21,8 @@ void Client::login(){
     _netSock.send(msg, _netSock);
     _window = SDL_CreateWindow(_nick.c_str(), 0, 0, 750, 750, 0);
     _renderer = SDL_CreateRenderer(_window, 0, 0);
+    _board = new Texture(_renderer, "./textures/dartboard.png");
+    _dart = new Texture(_renderer, "./textures/arrow.png");
 }
 
 void Client::logout(){
@@ -54,9 +56,10 @@ void Client::loop_thread(){
                 }
             }
         }
-        
-        SDL_SetRenderDrawColor(_renderer, COLOR(0xFF0000FF));
+        SDL_SetRenderDrawColor(_renderer, COLOR(0x964B00));
         SDL_RenderClear(_renderer);
+        _board->render({125, 0, 500, 500});
+        _dart->render({325, 525, 100, 100});
         SDL_RenderPresent(_renderer);
     }
     logout();

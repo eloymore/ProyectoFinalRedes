@@ -1,5 +1,5 @@
 OUT = ProyectoFinal.exe
-FLAGS = -lSDL2main -lSDL2 -lpthread -Wall -std=c++11
+FLAGS = -lSDL2main -lSDL2 -lSDL2_image -lpthread -Wall -std=c++11
 SRC = $(wildcard *.cc)
 OBJ = $(SRC:.cc=.o)
 BUILDDIR = ./build
