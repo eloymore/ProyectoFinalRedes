@@ -26,7 +26,7 @@ bool Client::login(){
     _window = SDL_CreateWindow(_nick.c_str(), 0, 0, 750, 750, 0);
     _renderer = SDL_CreateRenderer(_window, 0, 0);
     _board = new Texture(_renderer, "./textures/dartboard.png");
-    _dart = new Texture(_renderer, "./textures/arrow.png");
+    _dart = new Texture(_renderer, "./textures/dart.png");
     return true;
 }
 
@@ -90,7 +90,6 @@ void Client::net_thread(){
                 break;
             case Message::CONNREFUSED:
                 running = false;
-                Quit();
                 break;
             case Message::MOVEMENT:
             {

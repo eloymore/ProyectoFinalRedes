@@ -18,9 +18,6 @@ void Server::net_thread(){
                 auto i = 0;
                 while(i < clients.size() && strcmp(msgB.nick.c_str(), nicks[i].c_str()) != 0 && strcmp(msgB.nick.c_str(), SERVERNICK) != 0) { ++i; } // SERVERNICK se reserva para el servidor
                 if(i == clients.size()){    // Si no se encuentra ya en el vector se pone
-                    Message connRefused(SERVERNICK, Message::CONNACCEPTED); // TCP de palo para informar al cliente si debe cerrarse
-                    _netSock.send(connRefused, *newSD);
-
                     std::unique_ptr<Socket> u_ptr(newSD);
                     clients.push_back(std::move(u_ptr));
                     nicks.push_back(msgB.nick);
