@@ -25,7 +25,7 @@ class Client{
     int state = 0; // -1 = not my turn/dart in air, 0 = moving dart, 1 = selecting strength
     Texture* _board;
     Texture*_dart;
-    float _dartX, _dartY;
+    int _dartX = 325, _dartY = 550;
 };
 
 #endif

@@ -46,20 +46,20 @@ void Client::loop_thread(){
                     _netSock.send(msg, _netSock);
                     state = -1;
                 }
+                else if(state == 0) state = 1;
             }
             else if(pEvent.type == SDL_MOUSEMOTION)
             {
                 if(state == 0){
                     MovementMessage msg(_nick, pEvent.motion.xrel, pEvent.motion.yrel);
                     _netSock.send(msg, _netSock);
-                    state = 1;
                 }
             }
         }
         SDL_SetRenderDrawColor(_renderer, COLOR(0x964B00));
         SDL_RenderClear(_renderer);
         _board->render({125, 0, 500, 500});
-        _dart->render({325, 525, 100, 100});
+        _dart->render({_dartX, _dartY, 100, 100});
         SDL_RenderPresent(_renderer);
     }
     logout();

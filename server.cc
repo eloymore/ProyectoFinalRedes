@@ -101,3 +101,29 @@ bool Server::moveDartInAir(){
 
     return dartDepth >= targetDepth;
 }
+
+int Server::getScore(Vector2<> pos){
+    Vector2<> dirFromCenter = pos - targetPos;
+    int score = 0;
+    if(dirFromCenter.magnitude() < targetRadius){
+        float angleBetweenR = dirFromCenter.angleDegrees(Vector2<>::right());
+        float angleBetweenL = dirFromCenter.angleDegrees(Vector2<>::left());
+        angleBetweenR -= 6, angleBetweenL -= 6, angleBetweenL += 180;
+
+        if(dirFromCenter.magnitude() > targetRadius * 0.1f){
+            if(pos.y > targetPos.y)
+                score = scores[(int)angleBetweenR / 13];
+            else
+                score = scores[(int)angleBetweenL / 13];
+            }
+
+            if(dirFromCenter.magnitude() > targetRadius * 0.475f && dirFromCenter.magnitude() < targetRadius * 0.525f){
+                score *= 2;
+            } else if (dirFromCenter.magnitude() > targetRadius * 0.95f){
+                score *= 3;
+            }
+        else
+            score = bullseye;
+    }
+    return score;
+}
