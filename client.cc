@@ -84,6 +84,7 @@ void Client::net_thread(){
         
         switch(msg->type){
             case Message::LOGIN:
+            {
                 if(strcmp(msg->nick.c_str(), _nick.c_str()) == 0) break;
 
                 std::cout << "Login de " << msg->nick << std::endl;
@@ -91,7 +92,10 @@ void Client::net_thread(){
                 nicks.push_back(msg->nick);
                 scores.push_back(0);
 
+                ScoreMessage sMsg(_nick, scores[0]);    // Se da a conocer por el resto
+                _netSock.send(sMsg, _netSock);
                 break;
+            }
             case Message::CONNREFUSED:
                 running = false;
                 break;
@@ -119,8 +123,13 @@ void Client::net_thread(){
                 ScoreMessage sMsg;
                 sMsg.from_bin(buffer);
 
-                std::cout << "Score: " << sMsg.i << std::endl;
-                scores[std::distance(nicks.begin(), std::find(nicks.begin(), nicks.end(), sMsg.nick))] = sMsg.i;
+                std::cout << "Score de " << sMsg.nick << ": " << sMsg.i << std::endl;
+                int dist = std::distance(nicks.begin(), std::find(nicks.begin(), nicks.end(), sMsg.nick));
+                if(dist < scores.size()) scores[dist] = sMsg.i; // Si existe lo pone
+                else{                                           // Si no lo añade y lo pone
+                    nicks.push_back(msg->nick);
+                    scores.push_back(sMsg.i);
+                }
 
                 break;
             }
@@ -135,8 +144,8 @@ void Client::net_thread(){
 
                 std::cout << "Logout de " << msg->nick << std::endl;
 
-                //scores.erase(scores.begin() + std::distance(nicks.begin(), std::find(nicks.begin(), nicks.end(), msg->nick)));
-                //nicks.erase(std::find(nicks.begin(), nicks.end(), msg->nick));
+                scores.erase(scores.begin() + std::distance(nicks.begin(), std::find(nicks.begin(), nicks.end(), msg->nick)));
+                nicks.erase(std::find(nicks.begin(), nicks.end(), msg->nick));
                 break;
             default:
                 std::cout << "Mensaje desconocido de " << msg->nick << std::endl;
