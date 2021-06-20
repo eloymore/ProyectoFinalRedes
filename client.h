@@ -9,7 +9,7 @@
 #include "Vector2.h"
 
 class Client{
-    public:
+public:
     Client(const char* ip, const char* port, std::string nick);
     ~Client();
     bool login();
@@ -17,7 +17,7 @@ class Client{
     void loop_thread();
     void net_thread();
     std::string _nick;
-    private:
+private:
     Socket _netSock;
     SDL_Window* _window;
     SDL_Renderer* _renderer;
@@ -30,6 +30,7 @@ class Client{
     int _dartX = 325, _dartY = 550;
     Vector2<float> _powerLimit = {1, 5};
     float _powerAmount = 1;
+    //Font* _NESfont;
 private:
     void Quit();
     bool running = true;

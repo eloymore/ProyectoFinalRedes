@@ -28,6 +28,7 @@ bool Client::login(){
     _board = new Texture(_renderer, "./textures/dartboard.png");
     _dart = new Texture(_renderer, "./textures/dart.png");
     _power = new Texture(_renderer, "./textures/power.png");
+    //_NESfont = new Font("./fonts/NES-chimera.ttf", 10);
     return true;
 }
 
