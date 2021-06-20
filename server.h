@@ -5,10 +5,12 @@
 #include <vector>
 #include <memory>
 #include "Vector2.h"
+#include <ctime>
 
 class Message;
 
 #define SERVERNICK "SERVER"
+#define SERVERRATE 60
 
 class Server{
 public:
@@ -33,6 +35,7 @@ private:
     bool dartInAir = false;
     float targetDepth = 10, dartDepth, dartVelocity;
     Vector2<> dartPos;
+    clock_t timeSinceLastTick = 0;
 };
 
 #endif

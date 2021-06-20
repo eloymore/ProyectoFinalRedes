@@ -4,11 +4,12 @@
 #include <iostream>
 #include <math.h>
 #include <algorithm>
+#include <unistd.h>
 
 void Server::net_thread(){
     while (true)
     {
-        Message msgB;
+        Message msgB; // TODO: Meter los mensajes en una lista, no enviarlos directamente, esperar a que el loop decida que toca y enviarlos de golpe
         Socket* newSD = &_netSock;
         char buffer[Message::MESSAGE_SIZE];
         _netSock.recv(msgB, buffer, newSD);
@@ -116,19 +117,25 @@ void Server::broadcast(Message& msg){
 }
 
 void Server::loop_thread(){
+    timeSinceLastTick = clock();
     while(true){
         if(dartInAir){
             if (moveDartInAir()){
                 clientScores[clientTurn] += getScore(dartPos);
                 ScoreMessage sm(nicks[clientTurn], clientScores[clientTurn]);
                 broadcast(sm);    // TODO: broadcast
-                clientTurn = (clientTurn + 1) % clients.size();     // Cambio de turno      
+                clientTurn = (clientTurn + 1) % clients.size();     // Cambio de turno
                 Message nt(SERVERNICK, Message::TURN);
                 _netSock.send(nt, *(clients[clientTurn].get()));    // Siguiente turno
                 MovementMessage mm(SERVERNICK, 325, 500);
-                _netSock.send(mm, *(clients[clientTurn].get()));    // Actualizar posición del dardo
+                _netSock.send(mm, *(clients[clientTurn].get()));    // Actualizar posicion del dardo
                 dartInAir = false;
             }
+        }
+
+        timeSinceLastTick = (clock() - timeSinceLastTick) / CLOCKS_PER_SEC;
+        if(timeSinceLastTick < 1.0f / SERVERRATE){
+            usleep(1.0f / SERVERRATE - timeSinceLastTick);
         }
     }
 }
