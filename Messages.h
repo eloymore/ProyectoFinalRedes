@@ -13,6 +13,7 @@ public:
     {
         LOGIN   = 0,
         CONNREFUSED,
+        CLIENTINFO,
         MOVEMENT,
         CLICK,
         SCORE,
@@ -72,6 +73,13 @@ public:
     ScoreMessage(){}
 
     ScoreMessage(std::string nick, int score) : IntMessage(nick, SCORE, score){}
+};
+
+class ClientInfoMessage : public IntMessage{
+public:
+    ClientInfoMessage(){}
+
+    ClientInfoMessage(std::string nick, int score) : IntMessage(nick, CLIENTINFO, score){}
 };
 
 class VelocityMessage: public Message{

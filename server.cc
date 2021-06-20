@@ -31,6 +31,11 @@ void Server::net_thread(){
                         Message turn(SERVERNICK, Message::TURN);
                         _netSock.send(turn, *(clients[0].get()));
                     }
+
+                    for(int i = 0; i < clientScores.size() - 1; ++i){
+                        ClientInfoMessage ciMsg(nicks[i], clientScores[i]);
+                        _netSock.send(ciMsg, *(clients[clientScores.size() - 1].get()));
+                    }
                 }
                 else {
                     std::cout << "Login de " << msgB.nick << " fallido, ya estaba metido" << std::endl;
@@ -58,15 +63,6 @@ void Server::net_thread(){
                 ClickMessage cMsg;
                 cMsg.from_bin(buffer);
                 std::cout << "Click de " << cMsg.nick << ": " << cMsg.i << std::endl;
-                delete newSD;
-                break;
-            }
-            case Message::SCORE:
-            {
-                ScoreMessage sMsg;
-                sMsg.from_bin(buffer);
-                std::cout << "Score de " << sMsg.nick << ": " << sMsg.i << std::endl;
-                broadcast(sMsg);
                 delete newSD;
                 break;
             }
@@ -121,13 +117,14 @@ void Server::loop_thread(){
             if (moveDartInAir()){
                 clientScores[clientTurn] += getScore(dartPos);
                 ScoreMessage sm(nicks[clientTurn], clientScores[clientTurn]);
-                broadcast(sm);    // TODO: broadcast
+                broadcast(sm);   
                 clientTurn = (clientTurn + 1) % clients.size();     // Cambio de turno      
                 Message nt(SERVERNICK, Message::TURN);
                 _netSock.send(nt, *(clients[clientTurn].get()));    // Siguiente turno
                 MovementMessage mm(SERVERNICK, 325, 500);
                 _netSock.send(mm, *(clients[clientTurn].get()));    // Actualizar posición del dardo
                 dartInAir = false;
+                std::cout << "Turno de " << clientTurn << std::endl;
             }
         }
     }
