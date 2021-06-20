@@ -66,6 +66,7 @@ void Server::net_thread(){
                 ScoreMessage sMsg;
                 sMsg.from_bin(buffer);
                 std::cout << "Score de " << sMsg.nick << ": " << sMsg.i << std::endl;
+                broadcast(sMsg);
                 delete newSD;
                 break;
             }
@@ -120,7 +121,7 @@ void Server::loop_thread(){
             if (moveDartInAir()){
                 clientScores[clientTurn] += getScore(dartPos);
                 ScoreMessage sm(nicks[clientTurn], clientScores[clientTurn]);
-                _netSock.send(sm, *(clients[clientTurn].get()));    // TODO: broadcast
+                broadcast(sm);    // TODO: broadcast
                 clientTurn = (clientTurn + 1) % clients.size();     // Cambio de turno      
                 Message nt(SERVERNICK, Message::TURN);
                 _netSock.send(nt, *(clients[clientTurn].get()));    // Siguiente turno
