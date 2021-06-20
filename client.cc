@@ -39,10 +39,11 @@ void Client::logout(){
 
 void Client::loop_thread(){
     running = true;
+    timeSinceLastTick = std::chrono::system_clock::now();
     while(running){
+
+        // Input
         SDL_Event pEvent;
-        _powerAmount += 0.05;
-        if(_powerAmount > _powerLimit.y) _powerAmount = _powerLimit.x;
         while (SDL_PollEvent(&pEvent))
         {
             if (pEvent.type == SDL_QUIT) 
@@ -66,6 +67,18 @@ void Client::loop_thread(){
                 }
             }
         }
+
+        // Update
+        std::chrono::duration<double> elapsed_seconds = std::chrono::system_clock::now()-timeSinceLastTick;
+        if(elapsed_seconds.count() > 1.0f / CLIENTRATE)
+        {
+            std::cout << "Update\n";
+            _powerAmount += 0.05;
+            if(_powerAmount > _powerLimit.y) _powerAmount = _powerLimit.x;
+            timeSinceLastTick = std::chrono::system_clock::now();
+        }
+
+        // Render
         SDL_SetRenderDrawColor(_renderer, COLOR(0x964B00));
         SDL_RenderClear(_renderer);
         _board->render({125, 0, 500, 500});

@@ -5,6 +5,7 @@
 #include <vector>
 #include <memory>
 #include "Vector2.h"
+#include <chrono>
 #include <ctime>
 
 class Message;
@@ -35,7 +36,7 @@ private:
     bool dartInAir = false;
     float targetDepth = 10, dartDepth, dartVelocity;
     Vector2<> dartPos;
-    clock_t timeSinceLastTick = 0;
+    std::chrono::_V2::system_clock::time_point timeSinceLastTick;
 };
 
 #endif

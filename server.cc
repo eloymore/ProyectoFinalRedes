@@ -113,7 +113,7 @@ void Server::broadcast(Message& msg){
 }
 
 void Server::loop_thread(){
-    timeSinceLastTick = clock();
+    timeSinceLastTick = std::chrono::system_clock::now();
     while(true){
         if(dartInAir){
             if (moveDartInAir()){
@@ -129,11 +129,11 @@ void Server::loop_thread(){
                 std::cout << "Turno de " << clientTurn << std::endl;
             }
         }
-
-        timeSinceLastTick = (clock() - timeSinceLastTick) / CLOCKS_PER_SEC;
-        if(timeSinceLastTick < 1.0f / SERVERRATE){
-            usleep(1.0f / SERVERRATE - timeSinceLastTick);
+        std::chrono::duration<double> elapsed_seconds = std::chrono::system_clock::now()-timeSinceLastTick;
+        if(elapsed_seconds.count() < 1.0f / SERVERRATE){
+            usleep((1.0f / SERVERRATE - elapsed_seconds.count()) * 1000000);
         }
+        timeSinceLastTick = std::chrono::system_clock::now();
     }
 }
 

@@ -7,6 +7,10 @@
 #include <vector>
 #include "Texture.h"
 #include "Vector2.h"
+#include <ctime>
+#include <chrono>
+
+#define CLIENTRATE 60
 
 class Client{
 public:
@@ -31,6 +35,7 @@ private:
     Vector2<float> _powerLimit = {1, 5};
     float _powerAmount = 1;
     //Font* _NESfont;
+    std::chrono::_V2::system_clock::time_point timeSinceLastTick;
 private:
     void Quit();
     bool running = true;
