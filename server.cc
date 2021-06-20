@@ -146,7 +146,7 @@ bool Server::moveDartInAir(){
 int Server::getScore(Vector2<> pos){
     Vector2<> dirFromCenter = pos - targetPos;
     int score = 0;
-    if(dirFromCenter.magnitude() < targetRadius){
+    if(dirFromCenter.magnitude() < targetRadius * 0.7f){
         float angleBetween = std::atan2(-dirFromCenter.y, -dirFromCenter.x) * 180 / M_PI;
         angleBetween += 180;
 
@@ -158,7 +158,7 @@ int Server::getScore(Vector2<> pos){
             
             if(dirFromCenter.magnitude() > targetRadius * 0.40f && dirFromCenter.magnitude() < targetRadius * 0.45f){
                 score *= 2;
-            } else if (dirFromCenter.magnitude() > targetRadius * 0.65f && dirFromCenter.magnitude() < targetRadius * 0.7f){
+            } else if (dirFromCenter.magnitude() > targetRadius * 0.65f){
                 score *= 3;
             }
         }else{
