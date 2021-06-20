@@ -34,7 +34,8 @@ private:
     int _dartX = 325, _dartY = 550;
     Vector2<float> _powerLimit = {1, 5};
     float _powerAmount = 1;
-    //Font* _NESfont;
+    Font* _NESfont;
+    Texture* _text;
     std::chrono::_V2::system_clock::time_point timeSinceLastTick;
 private:
     void Quit();

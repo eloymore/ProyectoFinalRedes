@@ -6,13 +6,17 @@
 #define COLOR(num) static_cast<Uint8>((num >> 24) & 0xff), static_cast<Uint8>((num >> 16) & 0xff), static_cast<Uint8>((num >> 8) & 0xff), static_cast<Uint8>(num & 0xff)
 
 Client::Client(const char* ip, const char* port, std::string nick) : _netSock(ip, port), _nick(nick) {
-    _nick[7] = '\0';
+    _nick[7] = ' ';
     nicks.push_back(_nick);
     scores.push_back(0);
     if((SDL_Init(SDL_INIT_VIDEO|SDL_INIT_AUDIO)==-1)) { 
         printf("Could not initialize SDL: %s.\n", SDL_GetError());
         exit(-1);
     }
+    if((TTF_Init()==-1)) { 
+        printf("Could not initialize TTF: %s.\n", TTF_GetError());
+        exit(-1);
+    };
 }
 
 Client::~Client(){
@@ -28,7 +32,8 @@ bool Client::login(){
     _board = new Texture(_renderer, "./textures/dartboard.png");
     _dart = new Texture(_renderer, "./textures/dart.png");
     _power = new Texture(_renderer, "./textures/power.png");
-    //_NESfont = new Font("./fonts/NES-chimera.ttf", 10);
+    _NESfont = new Font("./fonts/NES-Chimera.ttf", 10);
+    _text = new Texture(_renderer, "./textures/power.png");
     return true;
 }
 
@@ -55,7 +60,10 @@ void Client::loop_thread(){
                     _netSock.send(msg, _netSock);
                     state = -1;
                 }
-                else if(state == 0) state = 1;
+                else if(state == 0) {
+                    state = 1;
+                    _powerAmount = 0.0;
+                }
             }
             else if(pEvent.type == SDL_MOUSEMOTION)
             {
@@ -72,8 +80,7 @@ void Client::loop_thread(){
         std::chrono::duration<double> elapsed_seconds = std::chrono::system_clock::now()-timeSinceLastTick;
         if(elapsed_seconds.count() > 1.0f / CLIENTRATE)
         {
-            std::cout << "Update\n";
-            _powerAmount += 0.05;
+            _powerAmount += 0.125;
             if(_powerAmount > _powerLimit.y) _powerAmount = _powerLimit.x;
             timeSinceLastTick = std::chrono::system_clock::now();
         }
@@ -84,6 +91,10 @@ void Client::loop_thread(){
         _board->render({125, 0, 500, 500});
         _dart->render({_dartX, _dartY, 100, 100});
         if(state == 1) _power->render({_dartX + 100, _dartY, 100, 100}, {0, 0, (int)(100 * _powerAmount/_powerLimit.y), 100 });
+        for(int i = 0; i < scores.size(); ++i){
+            _text->loadFromText(_renderer, nicks[i] + ": " + std::to_string(scores[i]), _NESfont);
+            _text->render({10 + (80 * i), 700, 70, 50});
+        }
         SDL_RenderPresent(_renderer);
     }
     logout();
@@ -172,7 +183,8 @@ void Client::net_thread(){
 }
 
 void Client::Quit(){
-    // delete _window;
-    // delete _renderer;
+    SDL_DestroyWindow(_window);
+    SDL_DestroyRenderer(_renderer);
     SDL_Quit();
+    TTF_Quit();
 }
