@@ -97,7 +97,9 @@ void Client::loop_thread(){
         if(state == 1) _power->render({_dartX + 100, _dartY, 100, 100}, {0, 0, (int)(100 * _powerAmount/_powerLimit.y), 100 });
         for(int i = 0; i < scores.size(); ++i){
             _text->loadFromText(_renderer, nicks[i] + ": " + std::to_string(scores[i]), _NESfont);
-            _text->render({10 + (80 * i), 700, 70, 50});
+            int score = scores[i];
+            int len = score?0:1; while (score) { len++, score/=10; }
+            _text->render({10, 10 + (80 * i), 10 * (int)(nicks[i].size() + 2 + len), 50});
         }
         if(state != -1){
             _text->loadFromText(_renderer, "TU TURNO", _NESfont);
