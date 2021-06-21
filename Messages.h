@@ -18,6 +18,7 @@ public:
         CLICK,
         SCORE,
         VELOCITY,
+        DEPTH,
         TURN,
         LOGOUT
     };
@@ -82,17 +83,31 @@ public:
     ClientInfoMessage(std::string nick, int score) : IntMessage(nick, CLIENTINFO, score){}
 };
 
-class VelocityMessage: public Message{
+class FloatMessage: public Message{
     public:
-    VelocityMessage(){}
+    FloatMessage(){}
 
-    VelocityMessage(std::string nick, float velocityP) : Message(nick, VELOCITY), velocity(velocityP) {}
+    FloatMessage(std::string nick, u_int8_t type, float fP) : Message(nick, type), f(fP) {}
     
     void to_bin() override;
 
     int from_bin(char * bobj) override;
 
-    float velocity;
+    float f;
+};
+
+class VelocityMessage: public FloatMessage{
+    public:
+    VelocityMessage(){}
+
+    VelocityMessage(std::string nick, float velocityP) : FloatMessage(nick, VELOCITY, velocityP) {}
+};
+
+class DepthMessage: public FloatMessage{
+    public:
+    DepthMessage(){}
+
+    DepthMessage(std::string nick, float depth) : FloatMessage(nick, DEPTH, depth) {}
 };
 
 #endif

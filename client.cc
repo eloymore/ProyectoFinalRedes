@@ -6,7 +6,7 @@
 #define COLOR(num) static_cast<Uint8>((num >> 24) & 0xff), static_cast<Uint8>((num >> 16) & 0xff), static_cast<Uint8>((num >> 8) & 0xff), static_cast<Uint8>(num & 0xff)
 
 Client::Client(const char* ip, const char* port, std::string nick) : _netSock(ip, port), _nick(nick) {
-    _nick[7] = ' ';
+    _nick[7] = '\0';  // Provoca que se corte al mostrar la puntuación propia
     nicks.push_back(_nick);
     scores.push_back(0);
     if((SDL_Init(SDL_INIT_VIDEO|SDL_INIT_AUDIO)==-1)) { 
@@ -70,8 +70,8 @@ void Client::loop_thread(){
                 if(state == 0){
                     MovementMessage msg(_nick, pEvent.motion.x, pEvent.motion.y);
                     _netSock.send(msg, _netSock);
-                    _dartX = pEvent.motion.x - 50;
-                    _dartY = pEvent.motion.y - 50;
+                    _dartX = pEvent.motion.x;
+                    _dartY = pEvent.motion.y;
                 }
             }
         }
@@ -89,7 +89,8 @@ void Client::loop_thread(){
         SDL_SetRenderDrawColor(_renderer, COLOR(0x964B00));
         SDL_RenderClear(_renderer);
         _board->render({125, 0, 500, 500});
-        _dart->render({_dartX, _dartY, 100, 100});
+        int depthDim = (int)(100 - (_cDepth * (_sizeVar.y - _sizeVar.x)));
+        _dart->render({_dartX - depthDim/2, _dartY - depthDim/2, depthDim, depthDim});
         if(state == 1) _power->render({_dartX + 100, _dartY, 100, 100}, {0, 0, (int)(100 * _powerAmount/_powerLimit.y), 100 });
         for(int i = 0; i < scores.size(); ++i){
             _text->loadFromText(_renderer, nicks[i] + ": " + std::to_string(scores[i]), _NESfont);
@@ -148,6 +149,15 @@ void Client::net_thread(){
                 std::cout << "Score de " << sMsg.nick << ": " << sMsg.i << std::endl;
                 int dist = std::distance(nicks.begin(), std::find(nicks.begin(), nicks.end(), sMsg.nick));
                 scores[dist] = sMsg.i; // Si existe lo pone
+
+                break;
+            }
+            case Message::DEPTH:
+            {
+                DepthMessage dMsg;
+                dMsg.from_bin(buffer);
+
+                _cDepth = dMsg.f;
 
                 break;
             }

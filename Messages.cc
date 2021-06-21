@@ -89,21 +89,21 @@ int IntMessage::from_bin(char * bobj){
     return 0;
 }
 
-void VelocityMessage::to_bin(){
+void FloatMessage::to_bin(){
     Message::to_bin();
 
     char* bin = _data + 9; // Se salta la parte del tipo y el nick
 
-    memcpy(bin, &velocity, sizeof(float));
+    memcpy(bin, &f, sizeof(float));
     bin += sizeof(float);
 }
 
-int VelocityMessage::from_bin(char * bobj){
+int FloatMessage::from_bin(char * bobj){
     Message::from_bin(bobj);
 
     //Reconstruir la clase usando el buffer _data
     char * bin = _data + 9; // Se salta la parte del tipo y el nick
-    memcpy(&velocity, bin, sizeof(float));
+    memcpy(&f, bin, sizeof(float));
     bin += sizeof(float);
 
     return 0;

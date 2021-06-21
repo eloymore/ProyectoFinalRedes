@@ -4,7 +4,7 @@
 #include <string.h>
 #include <thread>
 
-#define usage "Usage: ./ProyectoFinal.exe <[c],[s]> [nick] <ip> <port>"
+#define usage "USAGE: \nServer: ./ProyectoFinal.exe s <ip> <port>\nClient: ./ProyectoFinal.exe c [nick] <ip> <port>"
 
 int main(int argc, char* argv[]){
 

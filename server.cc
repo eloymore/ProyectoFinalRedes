@@ -71,9 +71,9 @@ void Server::net_thread(){
             {
                 VelocityMessage vMsg;
                 vMsg.from_bin(buffer);
-                dartVelocity = vMsg.velocity;
+                dartVelocity = vMsg.f;
                 dartInAir = true;
-                std::cout << "Velocidad de " << vMsg.nick << ": " << vMsg.velocity << std::endl;
+                std::cout << "Velocidad de " << vMsg.nick << ": " << vMsg.f << std::endl;
                 delete newSD;
                 break;
             }
@@ -117,9 +117,12 @@ void Server::loop_thread(){
     while(true){
         if(dartInAir){
             if (moveDartInAir()){
+                dartDepth = 0;
                 clientScores[clientTurn] += getScore(dartPos);
                 ScoreMessage sm(nicks[clientTurn], clientScores[clientTurn]);
-                broadcast(sm);   
+                broadcast(sm);  
+                DepthMessage dm("SERVER", dartDepth/targetDepth);
+                broadcast(dm);
                 clientTurn = (clientTurn + 1) % clients.size();     // Cambio de turno      
                 Message nt(SERVERNICK, Message::TURN);
                 _netSock.send(nt, *(clients[clientTurn].get()));    // Siguiente turno
@@ -139,11 +142,16 @@ void Server::loop_thread(){
 
 bool Server::moveDartInAir(){
 
-    Vector2<> gravity = Vector2<>::down() * 9.8f;
+    Vector2<> gravity = Vector2<>::down() * 9.8f / 60;
 
-    dartPos += gravity;
+    dartPos -= gravity;
+    MovementMessage mMsg("SERVER", dartPos.x, dartPos.y);
+    broadcast(mMsg);
 
-    dartDepth += dartVelocity;
+    DepthMessage dm("SERVER", dartDepth/targetDepth);
+    broadcast(dm);
+
+    dartDepth += dartVelocity / 60.0f;
 
     return dartDepth >= targetDepth;
 }
