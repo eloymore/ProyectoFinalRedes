@@ -42,6 +42,7 @@ private:
 private:
     void Quit();
     bool running = true;
+    bool connAccepted = true;
 };
 
 #endif

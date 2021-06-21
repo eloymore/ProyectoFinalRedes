@@ -17,10 +17,18 @@ void Server::net_thread(){
             case Message::LOGIN:
             {
                 std::cout << "Login de " << msgB.nick << std::endl;
+                
+                if(clients.size() >= MAXCLIENTS){
+                    std::cout << "Login de " << msgB.nick << " fallido, no cabe" << std::endl;
+                    Message connRefused(SERVERNICK, Message::CONNREFUSED);
+                    _netSock.send(connRefused, *newSD);
+                    delete newSD;
+                    break;
+                }
 
                 auto i = 0;
                 while(i < clients.size() && strcmp(msgB.nick.c_str(), nicks[i].c_str()) != 0 && strcmp(msgB.nick.c_str(), SERVERNICK) != 0) { ++i; } // SERVERNICK se reserva para el servidor
-                if(i == clients.size()){    // Si no se encuentra ya en el vector se pone
+                if(i == clients.size()){    // Si no se encuentra ya en el vector y cabe, se pone
                     std::unique_ptr<Socket> u_ptr(newSD);
                     clients.push_back(std::move(u_ptr));
                     nicks.push_back(msgB.nick);
@@ -48,12 +56,13 @@ void Server::net_thread(){
             }
             case Message::MOVEMENT:
             {
+
                 MovementMessage mMsg;
                 mMsg.from_bin(buffer);
+                
                 //std::cout << "Movimiento: " << mMsg.x << "," << mMsg.y << std::endl;
 
                 dartPos = {mMsg.x, mMsg.y};
-                //std::cout << dartPos.x << " | " << dartPos.y << "\n";
 
                 broadcast(mMsg);
                 delete newSD;
@@ -63,7 +72,9 @@ void Server::net_thread(){
             {
                 ClickMessage cMsg;
                 cMsg.from_bin(buffer);
+
                 std::cout << "Click de " << cMsg.nick << ": " << cMsg.i << std::endl;
+
                 delete newSD;
                 break;
             }
@@ -73,18 +84,24 @@ void Server::net_thread(){
                 vMsg.from_bin(buffer);
                 dartVelocity = vMsg.f;
                 dartInAir = true;
+
                 std::cout << "Velocidad de " << vMsg.nick << ": " << vMsg.f << std::endl;
+
                 delete newSD;
                 break;
             }
             case Message::LOGOUT:
             {
-                std::cout << "Logout de " << msgB.nick << std::endl;
-                broadcast(msgB);
                 int dist = std::distance(nicks.begin(), std::find(nicks.begin(), nicks.end(), msgB.nick));
+                if(dist >= clients.size()) break;
+
+                std::cout << "Logout de " << msgB.nick << std::endl;
+
                 clientScores.erase(clientScores.begin() + dist);
                 nicks.erase(nicks.begin() + dist);
                 clients.erase(clients.begin() + dist);
+
+                broadcast(msgB);
                 if(dist == clientTurn && clients.size() > 0){   // Si se ha ido el que tenía el turno debe pasarse
                     clientTurn = (clientTurn + 1) % clients.size();     // Cambio de turno      
                     Message nt(SERVERNICK, Message::TURN);
