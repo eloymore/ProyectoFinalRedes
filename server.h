@@ -12,7 +12,7 @@ class Message;
 
 #define SERVERNICK "SERVER"
 #define SERVERRATE 60
-#define MAXCLIENTS 1
+#define MAXCLIENTS 5
 
 class Server{
 public:

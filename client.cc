@@ -7,7 +7,7 @@
 
 Client::Client(const char* ip, const char* port, std::string nick) : _netSock(ip, port), _nick(nick) {
     //nick[7] = '\0';  // Provoca que se corte al mostrar la puntuación propia
-    std::string realNick(nick, 0, 8);
+    std::string realNick(nick, 0, 7);
     _nick = realNick;
     nicks.push_back(_nick);
     scores.push_back(0);
