@@ -96,6 +96,10 @@ void Client::loop_thread(){
             _text->loadFromText(_renderer, nicks[i] + ": " + std::to_string(scores[i]), _NESfont);
             _text->render({10 + (80 * i), 700, 70, 50});
         }
+        if(state != -1){
+            _text->loadFromText(_renderer, "TU TURNO", _NESfont);
+            _text->render({300, 650, 150, 75});
+        }
         SDL_RenderPresent(_renderer);
     }
     logout();
