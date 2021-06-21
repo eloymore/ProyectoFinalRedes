@@ -6,7 +6,9 @@
 #define COLOR(num) static_cast<Uint8>((num >> 24) & 0xff), static_cast<Uint8>((num >> 16) & 0xff), static_cast<Uint8>((num >> 8) & 0xff), static_cast<Uint8>(num & 0xff)
 
 Client::Client(const char* ip, const char* port, std::string nick) : _netSock(ip, port), _nick(nick) {
-    _nick[7] = '\0';  // Provoca que se corte al mostrar la puntuación propia
+    //nick[7] = '\0';  // Provoca que se corte al mostrar la puntuación propia
+    std::string realNick(nick, 0, 8);
+    _nick = realNick;
     nicks.push_back(_nick);
     scores.push_back(0);
     if((SDL_Init(SDL_INIT_VIDEO|SDL_INIT_AUDIO)==-1)) { 
@@ -45,6 +47,7 @@ void Client::logout(){
 void Client::loop_thread(){
     running = true;
     timeSinceLastTick = std::chrono::system_clock::now();
+
     while(running){
 
         // Input
@@ -98,7 +101,12 @@ void Client::loop_thread(){
         }
         SDL_RenderPresent(_renderer);
     }
-    logout();
+    
+    if(connAccepted)
+    {
+        logout();
+    }
+    else std::cout << "Conexion rechazada: numero de clientes superado o nick incorrecto (SERVER esta reservado)\n";
 }
 
 void Client::net_thread(){
@@ -121,6 +129,7 @@ void Client::net_thread(){
             }
             case Message::CONNREFUSED:
                 running = false;
+                connAccepted = false;
                 break;
             case Message::MOVEMENT:
             {
@@ -128,7 +137,6 @@ void Client::net_thread(){
 
                 MovementMessage mMsg;
                 mMsg.from_bin(buffer);
-                std::cout << "Movimiento: " << mMsg.x << "," << mMsg.y << std::endl;
 
                 _dartX = mMsg.x;
                 _dartY = mMsg.y;
